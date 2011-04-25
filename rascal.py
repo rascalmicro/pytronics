@@ -14,18 +14,42 @@
 # text of the GNU General Public License at 
 # <http://www.gnu.org/licenses/gpl.txt> for the details.
 
-import serial, subprocess
+import os, serial, subprocess
 from time import sleep, time
 
-### MOST OF THESE FUNCTIONS ARE VULNERABLE TO SHELL INJECTION! BAD! FIX! ###
+def decode_pin_name(pin):
+    names = {
+        'LED': 107, # PC11
+        '0': 69, # PB5
+        '1': 68, # PB4
+        '2': 71, # PB7
+        '3': 70, # PB6
+        '4': 73, # PB9
+        '5': 72, # PB8
+        '6': 55, # PA23
+        '7': 56, # PA24
+        '8': 100, # PC4
+        '9': 101, # PC5
+        '10': 67, # PB3
+        '11': 65, # PB1
+        '12': 64, # PB0
+        '13': 66, # PB2
+        'A0': 96, # PC0
+        'A1': 97, # PC1
+        'A2': 98, # PC2
+        'A3': 99, # PC3
+    }
+    return names[pin]
 
-def read_analog(chan):
+def read_analog(pin):
+    chan = decode_pin_name(pin) - 96
     command = 'cat /sys/devices/platform/at91_adc/chan' + str(chan)
     reading = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     return reading.communicate()[0].strip() # The [0] selects stdout
                                               # ([1] would access stderr)
 
 def read_pin(pin):
+    pin = decode_pin_name(pin)
     command = 'cat /sys/class/gpio/gpio' + str(pin) + '/value'
     state = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     return state.communicate()[0].strip() # The [0] selects stdout
@@ -37,10 +61,12 @@ def send_serial(text):
     ser.close()
 
 def set_pin_high(pin):
+    pin = decode_pin_name(pin)
     command = 'echo 1 > /sys/class/gpio/gpio' + str(pin) + '/value'
     subprocess.Popen(command, shell=True)
 
 def set_pin_low(pin):
+    pin = decode_pin_name(pin)
     command = 'echo 0 > /sys/class/gpio/gpio' + str(pin) + '/value'
     subprocess.Popen(command, shell=True)
 
@@ -48,9 +74,12 @@ def summarize_analog_data():
     import time
 
 # TODO: Figure out how the byte rounding works below to conserve RAM
+    filename = '/home/root/ana.log'
     try:
-        f = open('/home/root/ana.log', 'r')
+        f = open(filename, 'r')
     except:
+        return [[0],[0],[0],[0]]
+    if (os.stat(filename).st_size < 10000):
         return [[0],[0],[0],[0]]
     f.seek(-10000, 2) # seek 10000 bytes before the end of the file
     data = f.readlines(100000)[-100:-1] # try to read 100000 bytes
@@ -80,4 +109,3 @@ def analogger():
         f.write(','.join([str(time()), reading0, reading1, reading2, reading3]) + '\n')
         f.close()
         sleep(1)
-
