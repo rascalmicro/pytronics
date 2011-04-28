@@ -74,7 +74,7 @@ def summarize_analog_data():
     import time
 
 # TODO: Figure out how the byte rounding works below to conserve RAM
-    filename = '/home/root/ana.log'
+    filename = '/var/log/ana.log'
     try:
         f = open(filename, 'r')
     except:
@@ -105,7 +105,7 @@ def analogger():
         reading1 = str(float(read_analog(1)) * 3.3 / 1024.0)
         reading2 = str(float(read_analog(2)) * 3.3 / 1024.0)
         reading3 = str(float(read_analog(3)) * 3.3 / 1024.0)
-        f = open('/home/root/ana.log', 'a')
+        f = open('/var/log/ana.log', 'a')
         f.write(','.join([str(time()), reading0, reading1, reading2, reading3]) + '\n')
         f.close()
         sleep(1)
