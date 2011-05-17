@@ -39,14 +39,20 @@ def decode_pin_name(pin):
         'A2': 98, # PC2
         'A3': 99, # PC3
     }
-    return names[pin]
+    try:
+        return names[str(pin)]
+    except KeyError as bad_name:
+        print("There's no pin called {0}. Try a pin 3-13, 'LED', or 'A0'-'A3'.".format(bad_name)) 
 
 def read_analog(pin):
     chan = decode_pin_name(pin) - 96
-    command = 'cat /sys/devices/platform/at91_adc/chan' + str(chan)
-    reading = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-    return reading.communicate()[0].strip() # The [0] selects stdout
+    if(chan in range(4)):
+        command = 'cat /sys/devices/platform/at91_adc/chan' + str(chan)
+        reading = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        return reading.communicate()[0].strip() # The [0] selects stdout
                                               # ([1] would access stderr)
+    else:
+        return "Not an analog pin. Try 'A0', 'A1', 'A2', or 'A3'."
 
 def read_pin(pin):
     pin = decode_pin_name(pin)
