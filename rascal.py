@@ -14,9 +14,6 @@
 # text of the GNU General Public License at 
 # <http://www.gnu.org/licenses/gpl.txt> for the details.
 
-import os, serial, subprocess
-from time import sleep, time
-
 def decode_pin_name(pin):
     names = {
         'LED': 107, # PC11
@@ -45,39 +42,38 @@ def decode_pin_name(pin):
         print("There's no pin called {0}. Try a pin 3-13, 'LED', or 'A0'-'A3'.".format(bad_name)) 
 
 def read_analog(pin):
-    chan = decode_pin_name(pin) - 96
+    chan = decode_pin_name(pin) - 96 # offset of 96 maps channel to Port C on CPU
     if(chan in range(4)):
-        command = 'cat /sys/devices/platform/at91_adc/chan' + str(chan)
-        reading = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        return reading.communicate()[0].strip() # The [0] selects stdout
-                                              # ([1] would access stderr)
+        with open('/sys/devices/platform/at91_adc/chan' + str(chan), 'r') as f:
+            reading = f.read()
+        return reading.strip()
     else:
         return "Not an analog pin. Try 'A0', 'A1', 'A2', or 'A3'."
 
 def read_pin(pin):
     pin = decode_pin_name(pin)
-    command = 'cat /sys/class/gpio/gpio' + str(pin) + '/value'
-    state = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-    return state.communicate()[0].strip() # The [0] selects stdout
-                                          # ([1] would access stderr)
+    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'r') as f:
+        reading = f.read()
+    return reading.strip()
 
 def send_serial(text):
+    import serial
     ser = serial.Serial('/dev/ttyS1', 19200, timeout=1)
     ser.write(str(text[0:80]))
     ser.close()
 
 def set_pin_high(pin):
     pin = decode_pin_name(pin)
-    command = 'echo 1 > /sys/class/gpio/gpio' + str(pin) + '/value'
-    subprocess.Popen(command, shell=True)
+    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
+        f.write('1')
 
 def set_pin_low(pin):
     pin = decode_pin_name(pin)
-    command = 'echo 0 > /sys/class/gpio/gpio' + str(pin) + '/value'
-    subprocess.Popen(command, shell=True)
+    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
+        f.write('0')
 
 def summarize_analog_data():
-    import time
+    import os, time
 
 # TODO: Figure out how the byte rounding works below to conserve RAM
     filename = '/var/log/ana.log'
@@ -106,6 +102,7 @@ def summarize_analog_data():
     return summary
 
 def analogger():
+    from time import sleep, time
     while(1):
         reading0 = str(float(read_analog(0)) * 3.3 / 1024.0)
         reading1 = str(float(read_analog(1)) * 3.3 / 1024.0)
