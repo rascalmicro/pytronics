@@ -2,9 +2,9 @@
 
 from distutils.core import setup
 
-setup(name='rascal',
+setup(name='pytronics',
     version='0.1',
-    py_modules=['rascal'],
+    py_modules=['pytronics'],
     description='Rascal hardware API',
     long_description='Hardware control library for the Rascal, a small computer for art and science',
     author='Brandon Stafford',
