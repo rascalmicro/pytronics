@@ -109,10 +109,10 @@ def summarize_analog_data():
 def analogger():
     from time import sleep, time
     while(1):
-        reading0 = str(float(read_analog(0)) * 3.3 / 1024.0)
-        reading1 = str(float(read_analog(1)) * 3.3 / 1024.0)
-        reading2 = str(float(read_analog(2)) * 3.3 / 1024.0)
-        reading3 = str(float(read_analog(3)) * 3.3 / 1024.0)
+        reading0 = str(float(read_analog('A0')) * 3.3 / 1024.0)
+        reading1 = str(float(read_analog('A1')) * 3.3 / 1024.0)
+        reading2 = str(float(read_analog('A2')) * 3.3 / 1024.0)
+        reading3 = str(float(read_analog('A3')) * 3.3 / 1024.0)
         f = open('/var/log/ana.log', 'a')
         f.write(','.join([str(time()), reading0, reading1, reading2, reading3]) + '\n')
         f.close()
