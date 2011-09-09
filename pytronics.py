@@ -56,9 +56,14 @@ def read_pin(pin):
         reading = f.read()
     return reading.strip()
 
-def send_serial(text):
+def send_serial(text, speed=19200, port='1'):
     import serial
-    ser = serial.Serial('/dev/ttyS1', 19200, timeout=1)
+    ports = {
+        '1': '/dev/ttyS1',
+        '2': '/dev/ttyS2',
+        '3': '/dev/ttyS3'
+    }
+    ser = serial.Serial(ports[str(port)], speed, timeout=1)
     ser.write(str(text[0:80]))
     ser.close()
 
