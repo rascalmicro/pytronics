@@ -41,7 +41,7 @@ def decode_pin_name(pin):
     except KeyError as bad_name:
         print("There's no pin called {0}. Try a pin 3-13, 'LED', or 'A0'-'A3'.".format(bad_name)) 
 
-def read_analog(pin):
+def analogRead(pin):
     chan = decode_pin_name(pin) - 96 # offset of 96 maps channel to Port C on CPU
     if(chan in range(4)):
         with open('/sys/devices/platform/at91_adc/chan' + str(chan), 'r') as f:
@@ -50,13 +50,34 @@ def read_analog(pin):
     else:
         return "Not an analog pin. Try 'A0', 'A1', 'A2', or 'A3'."
 
-def read_pin(pin):
+def analogWrite():
+    pass
+
+def digitalRead(pin):
     pin = decode_pin_name(pin)
     with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'r') as f:
         reading = f.read()
     return reading.strip()
 
-def send_serial(text, speed=19200, port='1'):
+def digitalWrite(pin, state):
+    pin = decode_pin_name(pin)
+    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
+        if (state == 'HIGH'):
+            f.write('1')
+        else:
+            f.write('0')
+
+def i2cRead():
+    pass
+
+def i2cWrite(val):
+    cmd = 'i2cset -y 0 0x29 ' + str(val)
+    subprocess.Popen([cmd], shell=True)
+
+def serialRead():
+    pass
+
+def serialWrite(text, speed=19200, port='1'):
     import serial
     ports = {
         '1': '/dev/ttyS1',
@@ -66,54 +87,15 @@ def send_serial(text, speed=19200, port='1'):
     ser = serial.Serial(ports[str(port)], speed, timeout=1)
     ser.write(str(text[0:80]))
     ser.close()
+    
+def toggle(pin):
+    if digitalRead(pin):
+        digitalWrite(pin, 'LOW')
+    else:
+        digitalWrite(pin, 'HIGH')
 
-def set_pin_high(pin):
-    pin = decode_pin_name(pin)
-    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
-        f.write('1')
+def spiRead():
+    pass
 
-def set_pin_low(pin):
-    pin = decode_pin_name(pin)
-    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
-        f.write('0')
-
-def summarize_analog_data():
-    import os, time
-
-# TODO: Figure out how the byte rounding works below to conserve RAM
-    filename = '/var/log/ana.log'
-    try:
-        f = open(filename, 'r')
-    except:
-        return [[0],[0],[0],[0]]
-    if (os.stat(filename).st_size < 10000):
-        return [[0],[0],[0],[0]]
-    f.seek(-10000, 2) # seek 10000 bytes before the end of the file
-    data = f.readlines(100000)[-100:-1] # try to read 100000 bytes
-    f.close()
-    cur_time = time.time()
-    times = [str(float(line.strip().split(',')[0]) - cur_time) for line in data]
-    r1 = [line.strip().split(',')[1] for line in data]
-    r2 = [line.strip().split(',')[2] for line in data]
-    r3 = [line.strip().split(',')[3] for line in data]
-    r4 = [line.strip().split(',')[4] for line in data]
-
-    p1 = ['[' + str(t) + ', ' + str(r) + ']' for t, r in zip(times, r1)]
-    p2 = ['[' + str(t) + ', ' + str(r) + ']' for t, r in zip(times, r2)]
-    p3 = ['[' + str(t) + ', ' + str(r) + ']' for t, r in zip(times, r3)]
-    p4 = ['[' + str(t) + ', ' + str(r) + ']' for t, r in zip(times, r4)]
-
-    summary = ('[' + ','.join(p1) + ']', '[' + ','.join(p2) + ']', '[' + ','.join(p3) + ']', '[' + ','.join(p4) + ']')
-    return summary
-
-def analogger():
-    from time import sleep, time
-    while(1):
-        reading0 = str(float(read_analog('A0')) * 3.3 / 1024.0)
-        reading1 = str(float(read_analog('A1')) * 3.3 / 1024.0)
-        reading2 = str(float(read_analog('A2')) * 3.3 / 1024.0)
-        reading3 = str(float(read_analog('A3')) * 3.3 / 1024.0)
-        f = open('/var/log/ana.log', 'a')
-        f.write(','.join([str(time()), reading0, reading1, reading2, reading3]) + '\n')
-        f.close()
-        sleep(1)
+def spiWrite(val):
+    pass
