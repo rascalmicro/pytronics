@@ -14,6 +14,10 @@
 # text of the GNU General Public License at 
 # <http://www.gnu.org/licenses/gpl.txt> for the details.
 
+# Listing of /sys/class/gpio
+# export      gpio107     gpio66      gpio69      gpio72      gpio97      gpiochip32  unexport
+# gpio100     gpio64      gpio67      gpio70      gpio73      gpio98      gpiochip64
+
 def decode_pin_name(pin):
     names = {
         'LED': 107, # PC11
@@ -53,12 +57,16 @@ def analogRead(pin):
 def analogWrite():
     pass
 
+# Reads a value from a specified digital pin
+# Returns '0' or '1'
 def digitalRead(pin):
     pin = decode_pin_name(pin)
     with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'r') as f:
         reading = f.read()
     return reading.strip()
 
+# Write a HIGH or LOW value to a digital pin
+# E.g. digitalWrite('11', 'HIGH')
 def digitalWrite(pin, state):
     pin = decode_pin_name(pin)
     with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
@@ -66,6 +74,32 @@ def digitalWrite(pin, state):
             f.write('1')
         else:
             f.write('0')
+
+# Configures the specified pin to behave either as an input or an output
+# E.g. pinMode('5', 'INPUT')
+def pinMode(pin, mode):
+    pin = decode_pin_name(pin)
+    with open('/sys/class/gpio/gpio' + str(pin) + '/direction', 'w') as f:
+        if (mode == 'INPUT'):
+            f.write('in')
+        else:
+            f.write('out')
+
+# Called with list of pins e.g. [ 'LED' ]
+# Returns dictionary of tuples { 'pin': (direction, value) }
+def readPins(pinlist):
+    pins = {}
+    for pin in pinlist:
+        syspin = str(decode_pin_name(pin))
+        try:
+            with open('/sys/class/gpio/gpio' + syspin + '/direction', 'r') as f:
+                direction = f.read().strip()
+            with open('/sys/class/gpio/gpio' + syspin + '/value', 'r') as f:
+                value = f.read()
+            pins[pin] = (direction.strip(), value.strip())
+        except:
+            print ('## readPins ## Cannot access pin {0} ({1})'.format(pin, syspin))
+    return pins
 
 def i2cRead():
     pass
