@@ -101,13 +101,13 @@ def readPins(pinlist):
             print ('## readPins ## Cannot access pin {0} ({1})'.format(pin, syspin))
     return pins
 
-def i2cRead(addr, reg = 0, size = 'B'):
+def i2cRead(addr, reg = 0, size = 'B', length = 0):
     from i2c import _i2cRead
-    return _i2cRead(addr, reg, size)
+    return _i2cRead(addr, reg, size, length)
 
 def i2cWrite(addr, reg, val = '', size = 'B'):
     from i2c import _i2cWrite
-    return _i2cWrite(addr, reg, val, size)
+    _i2cWrite(addr, reg, val, size)
 
 def serialRead():
     pass
