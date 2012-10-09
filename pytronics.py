@@ -129,8 +129,11 @@ def toggle(pin):
     else:
         digitalWrite(pin, 'HIGH')
 
-def spiRead():
-    pass
+def spiRead(bytes, cs='0'):
+    with open('/dev/spidev1.' + str(cs), 'r') as f:
+        data = f.read(min(bytes, 8191))
+        f.close()
+    return data
 
 def spiWrite(val, cs='0'):
     with open('/dev/spidev1.' + str(cs), 'w') as f:
