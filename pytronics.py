@@ -153,3 +153,17 @@ def spiSetSpeed(speed, channel='0'):
     import array, fcntl
     with open('/dev/spidev1.' + str(channel), 'w') as f:
         return fcntl.ioctl(f, 0x40046B04, array.array('i', [int(speed)]))
+
+def dmxWrite(data): # expects a list of up to 512 integers in range 0-255
+    import serial
+
+    dmxPacket = chr(0x00) + ''.join(chr(element) for element in data)
+
+    # slow transmission is a hack to send break and mark-after-break signals
+    slow = serial.Serial('/dev/ttyS1', 19200)
+    slow.write(chr(0x00))
+    slow.close()
+
+    fast = serial.Serial('/dev/ttyS1', 250000, stopbits=serial.STOPBITS_TWO)
+    fast.write(dmxPacket)
+    fast.close()
