@@ -95,6 +95,12 @@ def readPins(pinlist):
             print ('## readPins ## Cannot access pin {0} ({1})'.format(pin, syspin))
     return pins
 
+def readWeatherBoard():
+    from sh import read_ftdi
+    names = ['header', 'temperature', 'humidity', 'dewpoint', 'pressure', 'light', 'wind_speed', 'wind_direction', 'rainfall', 'voltage', 'trailer']
+    readings = read_ftdi().split(',')
+    return dict(zip(names, readings))
+
 def i2cRead(addr, reg = 0, size = 'B', length = 0):
     from i2c import _i2cRead
     return _i2cRead(addr, reg, size, length)
