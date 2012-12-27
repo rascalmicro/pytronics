@@ -56,8 +56,11 @@ def analogWrite():
 def digitalRead(pin):
     pin = decode_pin_name(pin)
     with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'r') as f:
-        reading = f.read()
-    return reading.strip()
+        reading = f.read().strip()
+        if (reading == '1'):
+            return True
+        else:
+            return False
 
 # Write a HIGH or LOW value to a digital pin
 # E.g. digitalWrite('11', 'HIGH')
