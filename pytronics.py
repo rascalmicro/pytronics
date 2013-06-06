@@ -27,14 +27,8 @@ def decode_pin_name(pin):
         '3': 70, # PB6
         '4': 73, # PB9
         '5': 72, # PB8
-        '6': 55, # PA23
-        '7': 56, # PA24
-        '8': 100, # PC4
-        '9': 101, # PC5
-        '10': 67, # PB3
-        '11': 65, # PB1
-        '12': 64, # PB0
-        '13': 66, # PB2
+        '6': 75, # PB11 Rascal 1.2
+        '7': 74, # PB10 Rascal 1.2
         'A0': 96, # PC0
         'A1': 97, # PC1
         'A2': 98, # PC2
@@ -62,8 +56,11 @@ def analogWrite():
 def digitalRead(pin):
     pin = decode_pin_name(pin)
     with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'r') as f:
-        reading = f.read()
-    return reading.strip()
+        reading = f.read().strip()
+        if (reading == '1'):
+            return 1
+        else:
+            return 0
 
 # Write a HIGH or LOW value to a digital pin
 # E.g. digitalWrite('11', 'HIGH')
@@ -101,13 +98,19 @@ def readPins(pinlist):
             print ('## readPins ## Cannot access pin {0} ({1})'.format(pin, syspin))
     return pins
 
-def i2cRead(addr, reg = 0, size = 'B'):
+def readWeatherBoard():
+    from sh import read_ftdi
+    names = ['header', 'temperature', 'humidity', 'dewpoint', 'pressure', 'light', 'wind_speed', 'wind_direction', 'rainfall', 'voltage', 'trailer']
+    readings = read_ftdi().split(',')
+    return dict(zip(names, readings))
+
+def i2cRead(addr, reg = 0, size = 'B', length = 0):
     from i2c import _i2cRead
-    return _i2cRead(addr, reg, size)
+    return _i2cRead(addr, reg, size, length)
 
 def i2cWrite(addr, reg, val = '', size = 'B'):
     from i2c import _i2cWrite
-    return _i2cWrite(addr, reg, val, size)
+    _i2cWrite(addr, reg, val, size)
 
 def serialRead():
     pass
@@ -129,8 +132,11 @@ def toggle(pin):
     else:
         digitalWrite(pin, 'HIGH')
 
-def spiRead():
-    pass
+def spiRead(bytes, cs='0'):
+    with open('/dev/spidev1.' + str(cs), 'r') as f:
+        data = f.read(min(bytes, 8191))
+        f.close()
+    return data
 
 def spiWrite(val, cs='0'):
     with open('/dev/spidev1.' + str(cs), 'w') as f:
@@ -148,3 +154,16 @@ def spiSetSpeed(speed, channel='0'):
     import array, fcntl
     with open('/dev/spidev1.' + str(channel), 'w') as f:
         return fcntl.ioctl(f, 0x40046B04, array.array('i', [int(speed)]))
+
+def dmxWrite(data): # expects a list of up to 512 integers in range 0-255
+    import serial
+
+    dmxPacket = chr(0x00) + ''.join(chr(element) for element in data)
+
+    # slow transmission is a hack to send break and mark-after-break signals
+    slow = serial.Serial('/dev/ttyS1', 19200)
+    slow.write(chr(0x00))
+    slow.close()
+    fast = serial.Serial('/dev/ttyS1', 250000, stopbits=serial.STOPBITS_TWO)
+    fast.write(dmxPacket)
+    fast.close()
