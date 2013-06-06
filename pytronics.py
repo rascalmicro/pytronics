@@ -132,5 +132,19 @@ def toggle(pin):
 def spiRead():
     pass
 
-def spiWrite(val):
-    pass
+def spiWrite(val, cs='0'):
+    with open('/dev/spidev1.' + str(cs), 'w') as f:
+        f.write(val)
+        f.close()
+
+def spiGetSpeed(channel='0'):
+    import array, fcntl
+    with open('/dev/spidev1.' + str(channel), 'w') as f:
+        speed = array.array('i', [0])
+        fcntl.ioctl(f, 0x80046B04, speed)
+        return speed[0]
+
+def spiSetSpeed(speed, channel='0'):
+    import array, fcntl
+    with open('/dev/spidev1.' + str(channel), 'w') as f:
+        return fcntl.ioctl(f, 0x40046B04, array.array('i', [int(speed)]))
