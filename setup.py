@@ -3,9 +3,9 @@
 from distutils.core import setup
 
 setup(name='pytronics',
-    version='0.4.1',
+    version='0.4.2',
     license='GPLv3',
-    py_modules=['pytronics'],
+    py_modules=['i2c', 'pytronics'],
     description='Rascal hardware API',
     long_description='Hardware control library for the Rascal, a small computer for art and science',
     author='Brandon Stafford',
