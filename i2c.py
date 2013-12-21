@@ -48,47 +48,47 @@ def i2c_smbus_access(file, read_write, command, size, data):
     return fcntl.ioctl(file, I2C_SMBUS, args)
 
 def i2c_smbus_write_quick(file, mode):
-    if debug: print '## i2c_smbus_write_quick ##: mode 0x{0:02X}'.format(mode)
+    if debug: print('## i2c_smbus_write_quick ##: mode 0x{0:02X}'.format(mode))
     data = i2c_smbus_data(0)
     i2c_smbus_access(file, mode, 0, I2C_SMBUS_QUICK, pointer(data))
 
 def i2c_smbus_read_byte(file):
-    if debug: print '## i2c_smbus_read_byte ##'
+    if debug: print('## i2c_smbus_read_byte ##')
     data = i2c_smbus_data(0)
     i2c_smbus_access(file, I2C_SMBUS_READ, 0, I2C_SMBUS_BYTE, pointer(data))
     return 0x0FF & data.byte
 
 def i2c_smbus_write_byte(file, daddr):
-    if debug: print '## i2c_smbus_write_byte ##: daddr 0x{0:02X}'.format(daddr)
+    if debug: print('## i2c_smbus_write_byte ##: daddr 0x{0:02X}'.format(daddr))
     data = i2c_smbus_data(0)
     i2c_smbus_access(file, I2C_SMBUS_WRITE, daddr, I2C_SMBUS_BYTE, pointer(data))
 
 def i2c_smbus_read_byte_data(file, daddr):
-    if debug: print '## i2c_smbus_read_byte_data ##: daddr 0x{0:02X}'.format(daddr)
+    if debug: print('## i2c_smbus_read_byte_data ##: daddr 0x{0:02X}'.format(daddr))
     data = i2c_smbus_data(0)
     i2c_smbus_access(file, I2C_SMBUS_READ, daddr, I2C_SMBUS_BYTE_DATA, pointer(data))
     return 0x0FF & data.byte
 
 def i2c_smbus_write_byte_data(file, daddr, value):
-    if debug: print '## i2c_smbus_write_byte_data ##: daddr 0x{0:02X}, value=0x{1:02X}'.format(daddr, value)
+    if debug: print('## i2c_smbus_write_byte_data ##: daddr 0x{0:02X}, value=0x{1:02X}'.format(daddr, value))
     data = i2c_smbus_data(0)
     data.byte = value
     i2c_smbus_access(file, I2C_SMBUS_WRITE, daddr, I2C_SMBUS_BYTE_DATA, pointer(data))
 
 def i2c_smbus_read_word_data(file, daddr):
-    if debug: print '## i2c_smbus_read_word_data ##: daddr 0x{0:02X}'.format(daddr)
+    if debug: print('## i2c_smbus_read_word_data ##: daddr 0x{0:02X}'.format(daddr))
     data = i2c_smbus_data(0)
     i2c_smbus_access(file, I2C_SMBUS_READ, daddr, I2C_SMBUS_WORD_DATA, pointer(data))
     return 0x0FFFF & data.word
 
 def i2c_smbus_write_word_data(file, daddr, value):
-    if debug: print '## i2c_smbus_write_word_data ##: daddr 0x{0:02X}, value=0x{1:04X}'.format(daddr, value)
+    if debug: print('## i2c_smbus_write_word_data ##: daddr 0x{0:02X}, value=0x{1:04X}'.format(daddr, value))
     data = i2c_smbus_data(0)
     data.word = value
     i2c_smbus_access(file, I2C_SMBUS_WRITE, daddr, I2C_SMBUS_WORD_DATA, pointer(data))
 
 def i2c_smbus_read_i2c_block_data(file, daddr, length):
-    if debug: print '## i2c_smbus_read_i2c_block_data ##: daddr 0x{0:02X}, length 0x{1:02X}'.format(daddr, length)
+    if debug: print('## i2c_smbus_read_i2c_block_data ##: daddr 0x{0:02X}, length 0x{1:02X}'.format(daddr, length))
     data = i2c_smbus_data(0)
     if length > 32:
         length = 32
@@ -101,7 +101,7 @@ def i2c_smbus_read_i2c_block_data(file, daddr, length):
     return values
 
 def i2c_smbus_write_i2c_block_data(file, daddr, length, values):
-    if debug: print '## i2c_smbus_write_i2c_block_data ##: daddr 0x{0:02X}, length 0x{1:02X}'.format(daddr, length)
+    if debug: print('## i2c_smbus_write_i2c_block_data ##: daddr 0x{0:02X}, length 0x{1:02X}'.format(daddr, length))
     data = i2c_smbus_data(0)
     if length > 32:
         length = 32
@@ -112,7 +112,7 @@ def i2c_smbus_write_i2c_block_data(file, daddr, length, values):
 
 # Main entry points
 def _i2cRead(addr, reg = 0, size = '', length = 0):
-    if debug: print '## i2cRead ## addr={0}, reg={1}, size={2}, length={3}'.format(addr, reg, size, length)
+    if debug: print('## i2cRead ## addr={0}, reg={1}, size={2}, length={3}'.format(addr, reg, size, length))
     file = os.open(RASCAL_I2C, os.O_RDWR)
     fcntl.ioctl(file, I2C_SLAVE, addr)
     if size.upper() == 'I' and length > 0:
@@ -128,7 +128,7 @@ def _i2cRead(addr, reg = 0, size = '', length = 0):
 
 def _i2cWrite(addr, reg, value = '', size = 'B'):
     if value == '': size = 'C'; value = 0
-    if debug: print '## i2cWrite ## addr=0x{0:02x}, reg=0x{1:02x}, value=0x{2:04X}, size={3}'.format(addr, reg, value, size)
+    if debug: print('## i2cWrite ## addr=0x{0:02x}, reg=0x{1:02x}, value=0x{2:04X}, size={3}'.format(addr, reg, value, size))
     file = os.open(RASCAL_I2C, os.O_RDWR)
     fcntl.ioctl(file, I2C_SLAVE, addr)
     if size.upper() == 'I' and isinstance(value, list) and len(value) > 0:
@@ -156,11 +156,11 @@ def probe_bus(file, addr):
         except IOError:
             return I2C_SCAN_NODEV
         except Exception as e:
-            print '## probe_bus ## Unexpected exception: probe address {0}'.format(e)
+            print('## probe_bus ## Unexpected exception: probe address {0}'.format(e))
     except IOError:
         return I2C_SCAN_BUSY
     except Exception as e:
-        print '## probe_bus ## Unexpected exception: set slave address {0}'.format(e)
+        print('## probe_bus ## Unexpected exception: set slave address {0}'.format(e))
         
 # Address status: 0=out of range, -1=not present, -2=busy, otherwise device address
 def scanBus(first = 0x03, last = 0x77):
