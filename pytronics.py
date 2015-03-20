@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright 2011 Rascal Micro LLC
+# Copyright Rascal Micro LLC
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,30 +14,46 @@
 # text of the GNU General Public License at 
 # <http://www.gnu.org/licenses/gpl.txt> for the details.
 
-# Listing of /sys/class/gpio
-# export      gpio107     gpio66      gpio69      gpio72      gpio97      gpiochip32  unexport
-# gpio100     gpio64      gpio67      gpio70      gpio73      gpio98      gpiochip64
+NAMES = {
+    'D1': '44', # P8_12, gpio1[12]
+    'D2': '45', # P8_11, gpio1[13]
+    'D3': '46', # P8_16, gpio1[14]
+    'D4': '27', # P8_17, gpio0[27]
+    'T1': '66', # P8_7, gpio2[2]
+    'T2': '69', # P8_9, gpio2[5]
+    'T3': '68', # P8_10, gpio2[4]
+    'T4': '67', # P8_8, gpio2[3]
+    'PWM1A': '80', # P8_36, gpio2[16]
+    'PWM1B': '81', # P8_34, gpio2[17]
+    'PWM2A': '22', # P8_19, gpio0[22]
+    'PWM2B': '23', # P8_13, gpio0[23]
+    'A1': '1', # P9_40
+    'A2': '2', # P9_37
+    'A3': '3', # P9_38
+    'A4': '4', # P9_33
+}
+
+# Set up all the pins we'll need.
+# Executed upon module import.
+
+import os.path
+
+for name in NAMES:
+    with open('/sys/class/gpio/export', 'w') as f:
+        gpio_num = NAMES[name]
+        if os.path.exists('/sys/devices/virtual/gpio/gpio{0}'.format(gpio_num)):
+            print 'gpio{0} already exported'.format(gpio_num)
+        else:
+            f.write(gpio_num)
+            print('Exported gpio{0}'.format(gpio_num))
+
+# FUNCTIONS #
 
 def decode_pin_name(pin):
-    names = {
-        'LED': 107, # PC11
-        '0': 69, # PB5
-        '1': 68, # PB4
-        '2': 71, # PB7
-        '3': 70, # PB6
-        '4': 73, # PB9
-        '5': 72, # PB8
-        '6': 75, # PB11 Rascal 1.2
-        '7': 74, # PB10 Rascal 1.2
-        'A0': 96, # PC0
-        'A1': 97, # PC1
-        'A2': 98, # PC2
-        'A3': 99, # PC3
-    }
     try:
-        return names[str(pin)]
+        return NAMES[pin]
     except KeyError as bad_name:
-        print("There's no pin called {0}. Try a pin 3-13, 'LED', or 'A0'-'A3'.".format(bad_name)) 
+        print("There's no pin called {0}. Try a pin name amongst 'D1' - 'D4', 'T1' - T4', 'PWM1A', 'PWM1B', 'PWM2A', 'PWM2B',, or 'A0'-'A3'.".format(bad_name)) 
 
 def analogRead(pin):
     chan = decode_pin_name(pin) - 96 # offset of 96 maps channel to Port C on CPU
@@ -55,7 +71,7 @@ def analogWrite():
 # Returns '0' or '1'
 def digitalRead(pin):
     pin = decode_pin_name(pin)
-    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'r') as f:
+    with open('/sys/class/gpio/gpio' + pin + '/value', 'r') as f:
         reading = f.read().strip()
         if (reading == '1'):
             return 1
@@ -66,7 +82,7 @@ def digitalRead(pin):
 # E.g. digitalWrite('11', 'HIGH')
 def digitalWrite(pin, state):
     pin = decode_pin_name(pin)
-    with open('/sys/class/gpio/gpio' + str(pin) + '/value', 'w') as f:
+    with open('/sys/class/gpio/gpio' + pin + '/value', 'w') as f:
         if (state == 'HIGH'):
             f.write('1')
         else:
@@ -76,18 +92,20 @@ def digitalWrite(pin, state):
 # E.g. pinMode('5', 'INPUT')
 def pinMode(pin, mode):
     pin = decode_pin_name(pin)
-    with open('/sys/class/gpio/gpio' + str(pin) + '/direction', 'w') as f:
+    with open('/sys/class/gpio/gpio' + pin + '/direction', 'w') as f:
         if (mode == 'INPUT'):
             f.write('in')
-        else:
+        elif (mode == 'OUTPUT'):
             f.write('out')
+        else:
+            print("To call pytronics.pinMode(), mode should be 'INPUT' or 'OUTPUT'")
 
 # Called with list of pins e.g. [ 'LED' ]
 # Returns dictionary of tuples { 'pin': (direction, value) }
 def readPins(pinlist):
     pins = {}
     for pin in pinlist:
-        syspin = str(decode_pin_name(pin))
+        syspin = decode_pin_name(pin)
         try:
             with open('/sys/class/gpio/gpio' + syspin + '/direction', 'r') as f:
                 direction = f.read().strip()
@@ -123,7 +141,7 @@ def serialWrite(text, speed=19200, port='1'):
         '3': '/dev/ttyS3'
     }
     ser = serial.Serial(ports[str(port)], speed, timeout=1)
-    ser.write(str(text[0:80]))
+    ser.write(str(text))
     ser.close()
     
 def toggle(pin):
