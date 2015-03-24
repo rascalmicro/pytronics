@@ -60,7 +60,7 @@ def analogRead(pin):
     if(chan in range(4)):
         with open('/sys/devices/platform/at91_adc/chan' + str(chan), 'r') as f:
             reading = f.read()
-        return reading.strip()
+        return int(reading.strip())
     else:
         return "Not an analog pin. Try 'A0', 'A1', 'A2', or 'A3'."
 
