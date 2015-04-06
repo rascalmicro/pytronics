@@ -1,0 +1,10 @@
+[Unit]
+Description=Pytronics, hardware control library for the Rascal
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python /etc/pytronics/init-pins.py
+
+[Install]
+WantedBy=multi-user.target
+
